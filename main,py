@@ -1,0 +1,41 @@
+# Importieren der benötigten Bibliotheken
+import torch
+from transformers import BertTokenizer, BertForQuestionAnswering
+
+# --- Datenvorbereitung ---
+
+# Laden des Tokenizers
+tokenizer = BertTokenizer.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
+
+# Definieren von Kontext und Frage
+context = "Mahmoud is a technocrat who loves working with machines and automation. He lives in Freiburg, Germany."
+question = "Where does Mahmoud live?"
+
+# Tokenisierung des Textes und der Frage zu Token IDs, inklusive spezieller Tokens ([CLS], [SEP])
+input_ids = tokenizer.encode(question, context, add_special_tokens=True, return_tensors="pt")
+
+# Bestimmen der Token-Typen (0 für Frage, 1 für Kontext) für jedes Token in der Eingabe
+token_type_ids = [0 if i <= input_ids[0].tolist().index(tokenizer.sep_token_id) else 1 for i in range(len(input_ids[0]))]
+token_type_ids = torch.tensor([token_type_ids])
+
+# --- Modellverwendung ---
+
+# Laden des vortrainierten Modells
+model = BertForQuestionAnswering.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
+
+# Durchführung der Vorhersage (Berechnung der Start- und Endlogits) ohne Berechnung von Gradienten
+with torch.no_grad():
+    outputs = model(input_ids, token_type_ids=token_type_ids)
+    start_logits = outputs.start_logits
+    end_logits = outputs.end_logits
+
+# Bestimmen der wahrscheinlichsten Start- und Endposition der Antwort im Kontext
+start_index = torch.argmax(start_logits)
+end_index = torch.argmax(end_logits)
+
+# Konvertierung der Token IDs zurück in Text, um die Antwort zu extrahieren
+answer = tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(input_ids[0][start_index:end_index+1]))
+
+# Ausgabe der Frage und der gefundenen Antwort
+print("Frage:", question)
+print("Antwort:", answer)
