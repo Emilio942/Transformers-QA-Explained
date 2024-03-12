@@ -1,6 +1,7 @@
 # BERT Question Answering Script
 
-![Question Answering Process](path/to/your/image.png)
+
+![Question Answering Process](DALL%C2%B7Et.webp)
 
 This script leverages the power of the BERT (Bidirectional Encoder Representations from Transformers) model to provide answers to questions based on a given context. It's built using the `transformers` library and showcases the model's ability to understand complex queries and retrieve relevant information from a text corpus.
 
